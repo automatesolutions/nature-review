@@ -13,8 +13,19 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const store = await getStore();
-  const items = await store.list();
-  return NextResponse.json({ items });
+  try {
+    const items = await store.list();
+    return NextResponse.json({ items });
+  } catch (err) {
+    console.error("GET /api/inbox list failed", err);
+    return NextResponse.json(
+      {
+        error:
+          err instanceof Error ? err.message : "Firestore list failed",
+      },
+      { status: 503 },
+    );
+  }
 }
 
 export async function POST(req: Request) {

@@ -230,6 +230,19 @@ Do **not** use **Deploy an application** → App Engine unless you rewrite the a
 
 ---
 
+## If the Cloud Run URL shows “This page couldn't load”
+
+Do **not** deploy a revision whose container is named `placeholder-1` or whose image is `gcr.io/cloudrun/placeholder`. That image always shows this error page. Raising memory on it does nothing.
+
+1. Cloud Run → `review-inbox` → **Revisions**. Open the revision that is serving traffic and check **Image**.
+2. It must start with `asia-southeast1-docker.pkg.dev/natura-labs-fb-page-review/` — not `gcr.io/cloudrun/placeholder`.
+3. If traffic is on the placeholder: **Manage traffic** → send 100% to the revision from the **successful** Cloud Build (the one that ran `docker build` for ~2 minutes). Or Artifact Registry → copy the `app` image digest → Edit & deploy → paste that image URL (do not keep `placeholder-1`).
+4. After the next GitHub push, confirm `/api/health` returns JSON `{"ok":true,...}`. If that URL still shows the same error page, traffic is still on the placeholder.
+
+Also: **Memory 1 GiB**, `AUTH_TRUST_HOST=true`, full `AUTH_URL`, Firestore Native DB, and Datastore User on the Cloud Run service account.
+
+---
+
 ## Free trial notes
 
 Cloud Run + Firestore fit a $300 trial if you keep min instances at **0**. After trial ends, billing must be enabled or the service stops.

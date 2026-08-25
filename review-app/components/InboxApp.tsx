@@ -34,13 +34,15 @@ export function InboxApp({
   email,
   initialItems,
   signOutAction,
+  storeError,
 }: {
   email: string;
   initialItems: InboxItem[];
   signOutAction: () => Promise<void>;
+  storeError?: string;
 }) {
   const [items, setItems] = useState<InboxItem[]>(initialItems);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(storeError ?? null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [persona, setPersona] = useState<PersonaKey | "all">("all");

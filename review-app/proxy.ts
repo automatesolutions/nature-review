@@ -10,6 +10,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/api/health") {
+    return NextResponse.next();
+  }
+
   if (pathname === "/api/inbox" && method === "POST") {
     return NextResponse.next();
   }
@@ -18,7 +22,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch (err) {
+    console.error("auth() failed in proxy", err);
+  }
 
   if (pathname === "/login") {
     if (session) {
