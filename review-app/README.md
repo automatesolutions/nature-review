@@ -209,26 +209,7 @@ Always send JSON (n8n JSON body or `JSON.stringify`). Captions with quotes will 
 
 ## GCP Cloud Run
 
-JSON files do not survive Cloud Run instances. Production uses **Firestore**.
-
-1. Create a Firestore database (Native mode).
-2. Grant the Cloud Run runtime service account **Cloud Datastore User** (or Firestore User).
-3. Put secrets in Secret Manager; map them as env vars.
-4. Build and deploy:
-
-```bash
-gcloud builds submit --tag REGION-docker.pkg.dev/PROJECT/review-inbox/app
-gcloud run deploy review-inbox \
-  --image REGION-docker.pkg.dev/PROJECT/review-inbox/app \
-  --region REGION \
-  --allow-unauthenticated \
-  --set-env-vars STORE=firestore,AUTH_URL=https://review.naturalabs.io,AUTH_TRUST_HOST=true,GOOGLE_CLOUD_PROJECT=PROJECT \
-  --set-secrets AUTH_SECRET=AUTH_SECRET:latest,AUTH_GOOGLE_ID=AUTH_GOOGLE_ID:latest,AUTH_GOOGLE_SECRET=AUTH_GOOGLE_SECRET:latest,INGEST_SECRET=INGEST_SECRET:latest,N8N_APPROVE_WEBHOOK=N8N_APPROVE_WEBHOOK:latest
-```
-
-`--allow-unauthenticated` is the Cloud Run IAM flag. Humans still must sign in with Google; ingest uses `INGEST_SECRET`. Do not put IAP in front of `/api/inbox` unless n8n has a bypass.
-
-Map custom domain `review.naturalabs.io` on the Cloud Run service (Cloud DNS + managed certificate). OAuth origins must match exactly.
+Step-by-step for project `natura-labs-fb-page-review`: see [DEPLOY-GCP.md](DEPLOY-GCP.md).
 
 ## Swap persistence later
 

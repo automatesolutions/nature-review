@@ -1,10 +1,10 @@
 "use client";
 
-import { PERSONAS } from "@/lib/personas";
+import { PERSONAS, genderForPersona, type Gender } from "@/lib/personas";
 import { isSeedItem } from "@/lib/seed-flag";
 import type { Brand, InboxItem, PersonaKey, PostStatus } from "@/lib/types";
 import { isThisWeek, weekLabel } from "@/lib/week";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type StatusFilter = PostStatus | "all";
 type ViewMode = "grid" | "list";
@@ -15,6 +15,13 @@ const STATUS_LABEL: Record<PostStatus, string> = {
   denied: "Denied",
   changes_requested: "Changes requested",
 };
+
+function reviewerLine(item: InboxItem): string | null {
+  if (!item.reviewedByEmail) return null;
+  if (item.status === "approved") return `Approved by ${item.reviewedByEmail}`;
+  if (item.status === "denied") return `Denied by ${item.reviewedByEmail}`;
+  return `Reviewed by ${item.reviewedByEmail}`;
+}
 
 function statusChip(item: InboxItem): string {
   if (item.status === "pending" && item.reapprovalRequired) {
@@ -38,6 +45,7 @@ export function InboxApp({
   const [status, setStatus] = useState<StatusFilter>("all");
   const [persona, setPersona] = useState<PersonaKey | "all">("all");
   const [brand, setBrand] = useState<Brand | "all">("all");
+  const [gender, setGender] = useState<Gender | "all">("all");
   const [view, setView] = useState<ViewMode>("grid");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -54,6 +62,12 @@ export function InboxApp({
   );
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const busyRef = useRef(busy);
+  const itemsRef = useRef(items);
+  const draftsRef = useRef(drafts);
+  busyRef.current = busy;
+  itemsRef.current = items;
+  draftsRef.current = drafts;
 
   const applyItems = useCallback((nextItems: InboxItem[]) => {
     setItems(nextItems);
@@ -67,6 +81,37 @@ export function InboxApp({
     );
   }, []);
 
+  const mergeFromServer = useCallback((nextItems: InboxItem[]) => {
+    const prevItems = itemsRef.current;
+    const prevIds = new Set(prevItems.map((item) => item.id));
+    const arrived = nextItems.filter((item) => !prevIds.has(item.id)).length;
+    const prevById = new Map(prevItems.map((item) => [item.id, item]));
+    const prevDrafts = draftsRef.current;
+
+    setItems(nextItems);
+    setDrafts(() => {
+      const next: Record<string, { caption: string; comment: string }> = {};
+      for (const item of nextItems) {
+        const draft = prevDrafts[item.id];
+        const old = prevById.get(item.id);
+        const editing =
+          draft &&
+          old &&
+          (draft.caption !== old.caption || draft.comment !== old.comment);
+        next[item.id] = editing
+          ? draft
+          : { caption: item.caption, comment: item.comment };
+      }
+      return next;
+    });
+
+    if (arrived > 0) {
+      setToast(
+        `${arrived} new post${arrived === 1 ? "" : "s"} arrived from n8n.`,
+      );
+    }
+  }, []);
+
   const load = useCallback(async () => {
     setError(null);
     const res = await fetch("/api/inbox", { cache: "no-store" });
@@ -78,14 +123,34 @@ export function InboxApp({
     applyItems(data.items);
   }, [applyItems]);
 
+  const poll = useCallback(async () => {
+    if (busyRef.current) return;
+    const res = await fetch("/api/inbox", { cache: "no-store" });
+    if (!res.ok) return;
+    const data = (await res.json()) as { items: InboxItem[] };
+    mergeFromServer(data.items);
+  }, [mergeFromServer]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      void poll();
+    }, 8000);
+    function onVisible() {
+      if (document.visibilityState === "visible") void poll();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [poll]);
+
   const thisWeekCount = items.filter((item) => isThisWeek(item.runDate)).length;
 
-  const filtered = useMemo(() => {
+  const scopedItems = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((item) => {
       if (status !== "all" && item.status !== status) return false;
-      if (persona !== "all" && item.personaKey !== persona) return false;
-      if (brand !== "all" && item.brand !== brand) return false;
       if (!q) return true;
       return (
         item.persona.toLowerCase().includes(q) ||
@@ -95,7 +160,44 @@ export function InboxApp({
         item.caption.toLowerCase().includes(q)
       );
     });
-  }, [items, query, status, persona, brand]);
+  }, [items, query, status]);
+
+  function countBrand(value: Brand | "all") {
+    if (value === "all") return scopedItems.length;
+    return scopedItems.filter((item) => item.brand === value).length;
+  }
+
+  function countGender(value: Gender | "all") {
+    if (value === "all") return scopedItems.length;
+    return scopedItems.filter(
+      (item) => genderForPersona(item.personaKey) === value,
+    ).length;
+  }
+
+  function countName(value: PersonaKey | "all") {
+    if (value === "all") return scopedItems.length;
+    return scopedItems.filter((item) => item.personaKey === value).length;
+  }
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return items.filter((item) => {
+      if (status !== "all" && item.status !== status) return false;
+      if (persona !== "all" && item.personaKey !== persona) return false;
+      if (brand !== "all" && item.brand !== brand) return false;
+      if (gender !== "all" && genderForPersona(item.personaKey) !== gender) {
+        return false;
+      }
+      if (!q) return true;
+      return (
+        item.persona.toLowerCase().includes(q) ||
+        item.id.toLowerCase().includes(q) ||
+        item.personaKey.toLowerCase().includes(q) ||
+        item.mediaId.toLowerCase().includes(q) ||
+        item.caption.toLowerCase().includes(q)
+      );
+    });
+  }, [items, query, status, persona, brand, gender]);
 
   const groups = useMemo(() => {
     const map = new Map<string, InboxItem[]>();
@@ -252,7 +354,9 @@ export function InboxApp({
             <div className="title">
               This week ({thisWeekCount} post{thisWeekCount === 1 ? "" : "s"})
             </div>
-            <div className="count">{items.length} in inbox</div>
+            <div className="count">
+              {items.length} in inbox · live
+            </div>
           </div>
           <input
             className="search"
@@ -269,6 +373,50 @@ export function InboxApp({
           </form>
         </div>
         <div className="topbar-row">
+          <div className="filter-dropdowns">
+            <label className="filter-field">
+              <span>Brand</span>
+              <select
+                value={brand}
+                onChange={(e) => setBrand(e.target.value as Brand | "all")}
+              >
+                <option value="all">All ({countBrand("all")})</option>
+                <option value="Montana Tallow">
+                  Montana Tallow ({countBrand("Montana Tallow")})
+                </option>
+                <option value="Lumerval">
+                  Lumerval ({countBrand("Lumerval")})
+                </option>
+              </select>
+            </label>
+            <label className="filter-field">
+              <span>Gender</span>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value as Gender | "all")}
+              >
+                <option value="all">All ({countGender("all")})</option>
+                <option value="female">Female ({countGender("female")})</option>
+                <option value="male">Male ({countGender("male")})</option>
+              </select>
+            </label>
+            <label className="filter-field">
+              <span>Name</span>
+              <select
+                value={persona}
+                onChange={(e) =>
+                  setPersona(e.target.value as PersonaKey | "all")
+                }
+              >
+                <option value="all">All ({countName("all")})</option>
+                {PERSONAS.map((p) => (
+                  <option key={p.key} value={p.key}>
+                    {p.name} ({countName(p.key)})
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <div className="segment">
             <button
               className={view === "grid" ? "active" : ""}
@@ -296,44 +444,6 @@ export function InboxApp({
                 onClick={() => setStatus(value)}
               >
                 {value === "all" ? "All" : STATUS_LABEL[value]}
-              </button>
-            ))}
-          </div>
-          <div className="filters">
-            <button
-              className={`chip ${persona === "all" ? "active" : ""}`}
-              type="button"
-              onClick={() => setPersona("all")}
-            >
-              All personas
-            </button>
-            {PERSONAS.map((p) => (
-              <button
-                key={p.key}
-                className={`chip ${persona === p.key ? "active" : ""}`}
-                type="button"
-                onClick={() => setPersona(p.key)}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
-          <div className="filters">
-            <button
-              className={`chip ${brand === "all" ? "active" : ""}`}
-              type="button"
-              onClick={() => setBrand("all")}
-            >
-              All products
-            </button>
-            {(["Montana Tallow", "Lumerval"] as Brand[]).map((b) => (
-              <button
-                key={b}
-                className={`chip ${brand === b ? "active" : ""}`}
-                type="button"
-                onClick={() => setBrand(b)}
-              >
-                {b}
               </button>
             ))}
           </div>
@@ -486,6 +596,9 @@ function PostCard({
         <div className="meta-row">
           <span className="tag">{item.brand}</span>
           <span className={`status ${item.status}`}>{statusChip(item)}</span>
+          {reviewerLine(item) ? (
+            <span className="reviewer">{reviewerLine(item)}</span>
+          ) : null}
           <span>
             {item.weekdayName} · {item.runDate}
           </span>
@@ -620,6 +733,9 @@ function Lightbox({
           </button>
         </div>
         <div className={`status ${item.status}`}>{statusChip(item)}</div>
+        {reviewerLine(item) ? (
+          <p className="reviewer">{reviewerLine(item)}</p>
+        ) : null}
         {locked ? (
           <p className="hint">
             {item.status === "approved"
