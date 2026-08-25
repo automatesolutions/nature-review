@@ -483,10 +483,16 @@ export function InboxApp({
       <main className="main">
         {items.length === 0 ? (
           <p className="empty">
-            Inbox is empty. n8n persona workflows must POST to this app
-            (http://localhost:3000/api/inbox), not to webhook/approval-router.
-            From n8n Cloud that requires a public URL (ngrok or Cloud Run) plus
-            header x-ingest-secret and personaKey.
+            Inbox is empty. Point n8n persona HTTP Request at{" "}
+            <code>
+              {typeof window !== "undefined"
+                ? `${window.location.origin}/api/inbox`
+                : "/api/inbox"}
+            </code>
+            {" "}
+            with header <code>x-ingest-secret</code> and JSON{" "}
+            <code>personaKey</code>. Do not POST ingest to webhook/approval-router
+            (that URL is only for Approve).
           </p>
         ) : groups.length === 0 ? (
           <p className="empty">No posts match these filters.</p>
