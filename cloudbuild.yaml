@@ -29,7 +29,7 @@ steps:
       - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:${SHORT_SHA}
       - -t
       - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:latest
-      - ./review-app
+      - .
 
   - name: gcr.io/cloud-builders/docker
     id: push-sha

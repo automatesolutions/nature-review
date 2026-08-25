@@ -18,9 +18,8 @@ This repo includes a root [`cloudbuild.yaml`](../cloudbuild.yaml): a push to Git
 2. Finish **Firestore**, **Artifact Registry**, **Secret Manager**, and **IAM** below (sections 1–5) **before** the first Cloud Build. The YAML maps secret *names*; the secrets must already exist.
 3. Cloud Run Overview → **Connect repository**.
 4. Install the **Google Cloud Build** GitHub App and select this repo / `main`.
-5. Build configuration: **Cloud Build configuration file** (not “Dockerfile”).
-   - Location: `/cloudbuild.yaml` (repository root).
-   - Do **not** set the source directory to `review-app` when using this file — the YAML already builds `./review-app`.
+5. Build configuration: **Dockerfile** at `/Dockerfile` (repository root), **or** Cloud Build configuration file `/cloudbuild.yaml`.
+   - The Next.js app is in `review-app/`. The root `Dockerfile` copies from that folder so Cloud Run’s default trigger (`/workspace/Dockerfile`) works.
 6. Service name `review-inbox`, region `asia-southeast1`. Later builds reuse that service.
 7. After the first green build, copy the `*.run.app` URL into Google OAuth (origin + `/api/auth/callback/google`) and:
 

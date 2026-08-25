@@ -1,0 +1,7 @@
+.git
+**/.next
+**/node_modules
+review-app/.env*
+review-app/data
+*.md
+agent-transcripts
