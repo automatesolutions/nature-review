@@ -8,6 +8,32 @@ Do **not** set `AUTH_DEV_BYPASS` on Cloud Run. Production uses Google Workspace 
 
 Suggested region (Philippines / UTC+8): `asia-southeast1`
 
+This repo includes a root [`cloudbuild.yaml`](../cloudbuild.yaml): a push to GitHub builds `review-app/` and deploys Cloud Run service `review-inbox`.
+
+---
+
+## GitHub auto-deploy (do this)
+
+1. Push this repo to GitHub (`main`).
+2. Finish **Firestore**, **Artifact Registry**, **Secret Manager**, and **IAM** below (sections 1–5) **before** the first Cloud Build. The YAML maps secret *names*; the secrets must already exist.
+3. Cloud Run Overview → **Connect repository**.
+4. Install the **Google Cloud Build** GitHub App and select this repo / `main`.
+5. Build configuration: **Cloud Build configuration file** (not “Dockerfile”).
+   - Location: `/cloudbuild.yaml` (repository root).
+   - Do **not** set the source directory to `review-app` when using this file — the YAML already builds `./review-app`.
+6. Service name `review-inbox`, region `asia-southeast1`. Later builds reuse that service.
+7. After the first green build, copy the `*.run.app` URL into Google OAuth (origin + `/api/auth/callback/google`) and:
+
+```powershell
+gcloud run services update review-inbox `
+  --region asia-southeast1 `
+  --update-env-vars "AUTH_URL=https://review-inbox-xxxxx-as.a.run.app"
+```
+
+`--update-env-vars` in `cloudbuild.yaml` does not wipe `AUTH_URL`.
+
+If Connect repository fails, use **Cloud Build → Triggers → Create trigger** → GitHub → config file `cloudbuild.yaml` on `main`.
+
 ---
 
 ## 0. One-time on your PC
@@ -87,7 +113,7 @@ After Cloud Run exists you will add:
 - Authorized JavaScript origins: `https://REVIEW-INBOX-xxxxx-as.a.run.app`
 - Redirect URI: `https://REVIEW-INBOX-xxxxx-as.a.run.app/api/auth/callback/google`
 
-Consent screen: **Internal**, scopes `openid email profile`.
+Consent screen: **External** is OK on a trial project. Restrict emails with Cloud Run env `AUTH_ALLOWED_EMAIL_DOMAIN=naturalabs.io`. Add OAuth **test users**. Scopes `openid email profile`.
 
 You can create the OAuth client first with a placeholder, then edit URIs after the first deploy.
 
@@ -111,12 +137,22 @@ foreach ($name in @("AUTH_SECRET","AUTH_GOOGLE_ID","AUTH_GOOGLE_SECRET","INGEST_
 }
 ```
 
-Cloud Build also needs to push images:
+Cloud Build (GitHub) needs to push images and deploy Cloud Run:
 
 ```powershell
+$CB="$PROJECT_NUMBER@cloudbuild.gserviceaccount.com"
+
 gcloud projects add-iam-policy-binding $PROJECT `
-  --member="serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com" `
+  --member="serviceAccount:$CB" `
   --role="roles/artifactregistry.writer"
+
+gcloud projects add-iam-policy-binding $PROJECT `
+  --member="serviceAccount:$CB" `
+  --role="roles/run.admin"
+
+gcloud iam service-accounts add-iam-policy-binding $SA `
+  --member="serviceAccount:$CB" `
+  --role="roles/iam.serviceAccountUser"
 ```
 
 ---
@@ -188,7 +224,7 @@ Then update OAuth origins and `AUTH_URL` to `https://review.naturalabs.io`.
 2. **Firestore** → create Native DB.
 3. **Artifact Registry** → Docker repo `review-inbox` in `asia-southeast1`.
 4. **Secret Manager** → add the five secrets.
-5. **Cloud Run** → **Deploy container** → from Artifact Registry (after `gcloud builds submit`) **or** Cloud Run “Continuously deploy from a repository” if you push this repo to GitHub/GitLab.
+5. **Cloud Run** → **Connect repository** → Cloud Build config `/cloudbuild.yaml` (preferred). Manual: **Deploy container** after `gcloud builds submit`.
 6. Container port **8080**. Env: `STORE=firestore`, `GOOGLE_CLOUD_PROJECT=natura-labs-fb-page-review`, `AUTH_TRUST_HOST=true`. Map secrets as above.
 
 Do **not** use **Deploy an application** → App Engine unless you rewrite the app. This Dockerfile is for **Cloud Run**.

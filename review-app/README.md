@@ -32,6 +32,7 @@ Local store is `data/inbox.json` (created from seed data on first read). You can
 | `AUTH_URL` | Canonical origin, e.g. `http://localhost:3000` or `https://review.naturalabs.io` |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth web client |
 | `AUTH_TRUST_HOST` | `true` on Cloud Run |
+| `AUTH_ALLOWED_EMAIL_DOMAIN` | Google emails must end with `@` this domain (default `naturalabs.io`). Cloud Run env var, not a secret. |
 | `INGEST_SECRET` | Shared secret for n8n `POST /api/inbox` (`x-ingest-secret`) |
 | `N8N_APPROVE_WEBHOOK` | Central workflow URL; called on Approve |
 | `N8N_DENY_WEBHOOK` | Optional; Deny / Request changes. If unset, those actions use the approve URL with `action` |
@@ -43,16 +44,17 @@ If webhook URLs are empty, status still saves; the app logs a warning (mock mode
 
 ## Google OAuth (Workspace)
 
-1. GCP Console → APIs & Services → OAuth consent screen → **Internal**.
-2. Scopes: `openid`, `email`, `profile`.
-3. Credentials → OAuth 2.0 Client ID → **Web application**.
-4. Authorized JavaScript origins:
+1. Google Auth Platform → Audience: **Internal** if this GCP project is in the `naturalabs.io` org; otherwise **External** (typical on a personal free-trial project).
+2. If External and still in Testing, add each reviewer under **Audience → Test users**.
+3. Scopes: `openid`, `email`, `profile`.
+4. Credentials → OAuth 2.0 Client ID → **Web application**.
+5. Authorized JavaScript origins:
    - `http://localhost:3000`
    - `https://review.naturalabs.io`
-5. Authorized redirect URIs:
+6. Authorized redirect URIs:
    - `http://localhost:3000/api/auth/callback/google`
    - `https://review.naturalabs.io/api/auth/callback/google`
-6. Sign-in is rejected unless the Google email is verified and ends with `@naturalabs.io` (`hd` is not enough by itself).
+7. Sign-in is rejected unless the Google email is verified and ends with `@AUTH_ALLOWED_EMAIL_DOMAIN` (default `naturalabs.io`). Set that on Cloud Run as a **variable**, not a secret. `hd` is not enough by itself.
 
 If Google shows **Error 401: invalid_client** and the URL contains `client_id=undefined`, `.env.local` is missing `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` (Client ID looks like `….apps.googleusercontent.com`). Paste both, save, **restart** `npm run dev`. The login page stays disabled until those values exist.
 
@@ -209,7 +211,7 @@ Always send JSON (n8n JSON body or `JSON.stringify`). Captions with quotes will 
 
 ## GCP Cloud Run
 
-Step-by-step for project `natura-labs-fb-page-review`: see [DEPLOY-GCP.md](DEPLOY-GCP.md).
+Step-by-step for project `natura-labs-fb-page-review`: see [DEPLOY-GCP.md](DEPLOY-GCP.md). GitHub auto-deploy uses the repo-root [`cloudbuild.yaml`](../cloudbuild.yaml).
 
 ## Swap persistence later
 

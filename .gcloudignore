@@ -1,0 +1,9 @@
+.git
+.gitignore
+**/.next
+**/node_modules
+review-app/.env*
+review-app/data
+agent-transcripts
+*.md
+!review-app/DEPLOY-GCP.md

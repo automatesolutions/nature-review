@@ -2,15 +2,19 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { getGoogleOAuthCredentials } from "@/lib/google-oauth";
 
-export const ALLOWED_EMAIL_DOMAIN = "naturalabs.io";
+export function getAllowedEmailDomain(): string {
+  const raw = process.env.AUTH_ALLOWED_EMAIL_DOMAIN?.trim() || "naturalabs.io";
+  return raw.replace(/^@/, "").toLowerCase();
+}
 
 export function isAllowedReviewerEmail(email: string | null | undefined): boolean {
   if (!email) return false;
-  return email.toLowerCase().endsWith(`@${ALLOWED_EMAIL_DOMAIN}`);
+  return email.toLowerCase().endsWith(`@${getAllowedEmailDomain()}`);
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth(() => {
   const google = getGoogleOAuthCredentials();
+  const allowedDomain = getAllowedEmailDomain();
   return {
     trustHost: true,
     providers: [
@@ -19,7 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(() => {
         ...(google.clientSecret ? { clientSecret: google.clientSecret } : {}),
         authorization: {
           params: {
-            hd: ALLOWED_EMAIL_DOMAIN,
+            hd: allowedDomain,
             prompt: "select_account",
           },
         },

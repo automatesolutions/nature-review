@@ -1,0 +1,59 @@
+# GitHub → Cloud Build → Artifact Registry → Cloud Run
+# Project: natura-labs-fb-page-review
+#
+# Cloud Run → Connect repository → Cloud Build configuration file → this file (repo root).
+# Or Cloud Build → Triggers → included files: cloudbuild.yaml
+#
+# Do not put secret values here. Map Secret Manager names only.
+
+substitutions:
+  _REGION: asia-southeast1
+  _SERVICE: review-inbox
+  _AR_REPO: review-inbox
+
+timeout: 1800s
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:latest
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:${SHORT_SHA}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:latest
+      - ./review-app
+
+  - name: gcr.io/cloud-builders/docker
+    id: push-sha
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:${SHORT_SHA}
+
+  - name: gcr.io/cloud-builders/docker
+    id: push-latest
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:latest
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/app:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --port=8080
+      - --allow-unauthenticated
+      - --update-env-vars=STORE=firestore,AUTH_TRUST_HOST=true,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},AUTH_ALLOWED_EMAIL_DOMAIN=naturalabs.io
+      - --update-secrets=AUTH_SECRET=AUTH_SECRET:latest,AUTH_GOOGLE_ID=AUTH_GOOGLE_ID:latest,AUTH_GOOGLE_SECRET=AUTH_GOOGLE_SECRET:latest,INGEST_SECRET=INGEST_SECRET:latest,N8N_APPROVE_WEBHOOK=N8N_APPROVE_WEBHOOK:latest

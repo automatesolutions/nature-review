@@ -1,4 +1,4 @@
-import { auth, signIn } from "@/auth";
+import { auth, getAllowedEmailDomain, signIn } from "@/auth";
 import { isDevAuthBypass } from "@/lib/dev-auth";
 import { isGoogleOAuthConfigured } from "@/lib/google-oauth";
 import { redirect } from "next/navigation";
@@ -17,6 +17,7 @@ export default async function LoginPage({
   const oauthReady = isGoogleOAuthConfigured();
   const denied =
     error === "AccessDenied" || error === "Configuration" || Boolean(error);
+  const allowedDomain = getAllowedEmailDomain();
 
   return (
     <main className="login">
@@ -31,7 +32,7 @@ export default async function LoginPage({
         <h1>Natura Review Inbox</h1>
         <p>
           Internal review for persona lifestyle posts. Sign in with your{" "}
-          <strong>@naturalabs.io</strong> Google Workspace account.
+          <strong>@{allowedDomain}</strong> Google account.
         </p>
         {!oauthReady ? (
           <div className="error" style={{ textAlign: "left" }}>
@@ -43,7 +44,7 @@ export default async function LoginPage({
         ) : null}
         {denied && oauthReady ? (
           <div className="error">
-            Access denied. Only verified @naturalabs.io accounts can open this
+            Access denied. Only verified @{allowedDomain} accounts can open this
             inbox.
           </div>
         ) : null}
