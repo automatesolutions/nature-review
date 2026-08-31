@@ -2,7 +2,8 @@ export type PersonaKey =
   | "linda_chambers"
   | "becca_rose"
   | "brooke_swift"
-  | "claire_donovan";
+  | "claire_donovan"
+  | "rebecca_lang";
 
 export type PostStatus =
   | "pending"
