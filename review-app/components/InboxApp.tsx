@@ -116,21 +116,29 @@ export function InboxApp({
 
   const load = useCallback(async () => {
     setError(null);
-    const res = await fetch("/api/inbox", { cache: "no-store" });
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/inbox", { cache: "no-store" });
+      if (!res.ok) {
+        setError("Could not load inbox.");
+        return;
+      }
+      const data = (await res.json()) as { items: InboxItem[] };
+      applyItems(data.items);
+    } catch {
       setError("Could not load inbox.");
-      return;
     }
-    const data = (await res.json()) as { items: InboxItem[] };
-    applyItems(data.items);
   }, [applyItems]);
 
   const poll = useCallback(async () => {
     if (busyRef.current) return;
-    const res = await fetch("/api/inbox", { cache: "no-store" });
-    if (!res.ok) return;
-    const data = (await res.json()) as { items: InboxItem[] };
-    mergeFromServer(data.items);
+    try {
+      const res = await fetch("/api/inbox", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { items: InboxItem[] };
+      mergeFromServer(data.items);
+    } catch {
+      // Ignore transient failures (HMR, tab sleep, brief offline).
+    }
   }, [mergeFromServer]);
 
   useEffect(() => {

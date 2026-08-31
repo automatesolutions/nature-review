@@ -33,6 +33,13 @@ export const PERSONAS: PersonaMeta[] = [
     blurb: "24, Annecy",
   },
   {
+    key: "abby",
+    name: "Abby - The Farmer's Wife",
+    brand: "Montana Tallow",
+    gender: "female",
+    blurb: "The Farmer's Wife",
+  },
+  {
     key: "claire_donovan",
     name: "Claire Donovan",
     brand: "Lumerval",
