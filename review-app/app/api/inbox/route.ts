@@ -42,7 +42,10 @@ export async function POST(req: Request) {
 
   if (!body.personaKey || !isPersonaKey(body.personaKey)) {
     return NextResponse.json(
-      { error: "personaKey must be linda_chambers | becca_rose | brooke_swift | claire_donovan" },
+      {
+        error:
+          "personaKey must be linda_chambers | becca_rose | brooke_swift | claire_donovan | rebecca_lang",
+      },
       { status: 400 },
     );
   }

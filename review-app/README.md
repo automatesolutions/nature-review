@@ -2,7 +2,7 @@
 
 Internal web app for reviewing **persona lifestyle posts** (image + caption + Postbridge `mediaId`) before n8n schedules them. Replaces Slack Send-and-Wait.
 
-Personas: Linda Chambers, Becca Rose, Brooke Swift (Montana Tallow), Claire Donovan (Lumerval). This is **not** the Lumerval paid-ad composition gallery.
+Personas: Linda Chambers, Becca Rose, Brooke Swift (Montana Tallow), Claire Donovan, Rebecca Lang (Lumerval). This is **not** the Lumerval paid-ad composition gallery.
 
 ## Run locally
 
@@ -103,9 +103,9 @@ After **Merge / combine** (caption + CloudFront `imageUrl` + Postbridge `mediaId
 }
 ```
 
-Use whatever keys your Merge actually outputs (`caption`, `text`, `url`, `media_id`, etc.). `personaKey` must be exactly one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `claire_donovan`.
+Use whatever keys your Merge actually outputs (`caption`, `text`, `url`, `media_id`, etc.). `personaKey` must be exactly one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `claire_donovan` | `rebecca_lang`.
 
-Repeat the same HTTP Request on Linda / Brooke / Claire workflows, only changing `persona` + `personaKey`.
+Repeat the same HTTP Request on Linda / Brooke / Claire / Rebecca workflows, only changing `persona` + `personaKey`.
 
 **Local caveat:** n8n in the cloud cannot reach `http://localhost:3000`. Either:
 
@@ -145,6 +145,7 @@ Restart `npm run dev` after changing env.
 | `{{ $json.personaKey }}` = `becca_rose` | Becca Rose Schedule Post |
 | `{{ $json.personaKey }}` = `brooke_swift` | Brooke Swift Schedule Post |
 | `{{ $json.personaKey }}` = `claire_donovan` | Claire Donovan Schedule Post |
+| `{{ $json.personaKey }}` = `rebecca_lang` | Rebecca Lang Schedule Post |
 
 6. In each Postbridge HTTP body, use the **edited** caption from the inbox:
 
@@ -203,9 +204,9 @@ After Merge (image + caption + mediaId), **HTTP Request** instead of Slack Wait:
 }
 ```
 
-Creates a **Pending** row. Brand is inferred from `personaKey` (`claire_donovan` → Lumerval, others → Montana Tallow).
+Creates a **Pending** row. Brand is inferred from `personaKey` (`claire_donovan` / `rebecca_lang` → Lumerval, others → Montana Tallow).
 
-`personaKey` must be one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `claire_donovan`.
+`personaKey` must be one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `claire_donovan` | `rebecca_lang`.
 
 Always send JSON (n8n JSON body or `JSON.stringify`). Captions with quotes will not break the payload.
 

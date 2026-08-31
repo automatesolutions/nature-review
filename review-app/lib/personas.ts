@@ -39,6 +39,13 @@ export const PERSONAS: PersonaMeta[] = [
     gender: "female",
     blurb: "42, Austin",
   },
+  {
+    key: "rebecca_lang",
+    name: "Rebecca Lang",
+    brand: "Lumerval",
+    gender: "female",
+    blurb: "Lumerval",
+  },
 ];
 
 export const PERSONA_KEYS = PERSONAS.map((p) => p.key);
