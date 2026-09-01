@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error:
-          "personaKey must be linda_chambers | becca_rose | brooke_swift | abby | melissa_carter | claire_donovan | rebecca_lang",
+          "personaKey must be linda_chambers | becca_rose | brooke_swift | abby | melissa_carter | claire_donovan | rebecca_lang | linda_ashford | eleanor_brody",
       },
       { status: 400 },
     );

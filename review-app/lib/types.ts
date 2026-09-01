@@ -5,7 +5,9 @@ export type PersonaKey =
   | "abby"
   | "melissa_carter"
   | "claire_donovan"
-  | "rebecca_lang";
+  | "rebecca_lang"
+  | "linda_ashford"
+  | "eleanor_brody";
 
 export type PostStatus =
   | "pending"
@@ -15,7 +17,7 @@ export type PostStatus =
 
 export type PostType = "lifestyle" | "product";
 
-export type Brand = "Montana Tallow" | "Lumerval";
+export type Brand = "Montana Tallow" | "Lumerval" | "Pitch Skin";
 
 export type InboxItem = {
   id: string;

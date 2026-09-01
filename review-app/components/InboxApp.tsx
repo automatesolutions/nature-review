@@ -397,6 +397,9 @@ export function InboxApp({
                 <option value="Lumerval">
                   Lumerval ({countBrand("Lumerval")})
                 </option>
+                <option value="Pitch Skin">
+                  Pitch Skin ({countBrand("Pitch Skin")})
+                </option>
               </select>
             </label>
             <label className="filter-field">
