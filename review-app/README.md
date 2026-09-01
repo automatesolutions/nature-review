@@ -2,7 +2,7 @@
 
 Internal web app for reviewing **persona lifestyle posts** (image + caption + Postbridge `mediaId`) before n8n schedules them. Replaces Slack Send-and-Wait.
 
-Personas: Linda Chambers, Becca Rose, Brooke Swift, Abby - The Farmer's Wife (Montana Tallow); Claire Donovan, Rebecca Lang (Lumerval). This is **not** the Lumerval paid-ad composition gallery.
+Personas: Linda Chambers, Becca Rose, Brooke Swift, Abby - The Farmer's Wife, Melissa Carter (Montana Tallow); Claire Donovan, Rebecca Lang (Lumerval). This is **not** the Lumerval paid-ad composition gallery.
 
 ## Run locally
 
@@ -103,7 +103,7 @@ After **Merge / combine** (caption + CloudFront `imageUrl` + Postbridge `mediaId
 }
 ```
 
-Use whatever keys your Merge actually outputs (`caption`, `text`, `url`, `media_id`, etc.). `personaKey` must be exactly one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `abby` | `claire_donovan` | `rebecca_lang`.
+Use whatever keys your Merge actually outputs (`caption`, `text`, `url`, `media_id`, etc.). `personaKey` must be exactly one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `abby` | `melissa_carter` | `claire_donovan` | `rebecca_lang`.
 
 Repeat the same HTTP Request on each persona workflow, only changing `persona` + `personaKey`.
 
@@ -145,6 +145,7 @@ Restart `npm run dev` after changing env.
 | `{{ $json.personaKey }}` = `becca_rose` | Becca Rose Schedule Post |
 | `{{ $json.personaKey }}` = `brooke_swift` | Brooke Swift Schedule Post |
 | `{{ $json.personaKey }}` = `abby` | Abby Schedule Post |
+| `{{ $json.personaKey }}` = `melissa_carter` | Melissa Carter Schedule Post |
 | `{{ $json.personaKey }}` = `claire_donovan` | Claire Donovan Schedule Post |
 | `{{ $json.personaKey }}` = `rebecca_lang` | Rebecca Lang Schedule Post |
 
@@ -207,7 +208,7 @@ After Merge (image + caption + mediaId), **HTTP Request** instead of Slack Wait:
 
 Creates a **Pending** row. Brand is inferred from `personaKey` (`claire_donovan` / `rebecca_lang` → Lumerval, others → Montana Tallow).
 
-`personaKey` must be one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `abby` | `claire_donovan` | `rebecca_lang`.
+`personaKey` must be one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `abby` | `melissa_carter` | `claire_donovan` | `rebecca_lang`.
 
 Always send JSON (n8n JSON body or `JSON.stringify`). Captions with quotes will not break the payload.
 
