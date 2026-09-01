@@ -2,6 +2,8 @@ export type PersonaKey =
   | "linda_chambers"
   | "becca_rose"
   | "brooke_swift"
+  | "abby"
+  | "melissa_carter"
   | "claire_donovan"
   | "rebecca_lang";
 
