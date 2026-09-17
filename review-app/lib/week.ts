@@ -1,3 +1,18 @@
+export const REVIEW_TZ = "Asia/Manila";
+
+export function manilaCalendar(now = new Date()): {
+  runDate: string;
+  weekdayName: string;
+} {
+  return {
+    runDate: now.toLocaleDateString("en-CA", { timeZone: REVIEW_TZ }),
+    weekdayName: now.toLocaleDateString("en-US", {
+      weekday: "short",
+      timeZone: REVIEW_TZ,
+    }),
+  };
+}
+
 /** Mothership-style label from runDate, e.g. AUG W4 */
 export function weekLabel(runDate: string): string {
   const d = parseRunDate(runDate);

@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { InboxItem } from "../types";
 import type { InboxStore } from "./types";
+import { withCanonicalBrand } from "../personas";
 
 const DATA_PATH = path.join(process.cwd(), "data", "inbox.json");
 
@@ -40,7 +41,9 @@ export const jsonStore: InboxStore = {
   async list() {
     return withLock(async () => {
       const db = await readDb();
-      return [...db.items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      return [...db.items]
+        .map(withCanonicalBrand)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     });
   },
 

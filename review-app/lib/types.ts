@@ -17,7 +17,7 @@ export type PostStatus =
 
 export type PostType = "lifestyle" | "product";
 
-export type Brand = "Montana Tallow" | "Lumerval" | "Pitch Skin";
+export type Brand = "Glacier Naturals" | "Lumerval" | "Pitch Skin";
 
 export type InboxItem = {
   id: string;

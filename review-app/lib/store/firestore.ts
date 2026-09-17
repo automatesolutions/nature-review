@@ -1,4 +1,5 @@
 import { Firestore } from "@google-cloud/firestore";
+import { withCanonicalBrand } from "../personas";
 import type { InboxItem } from "../types";
 import type { InboxStore } from "./types";
 
@@ -23,13 +24,15 @@ function col() {
 export const firestoreStore: InboxStore = {
   async list() {
     const snap = await col().orderBy("createdAt", "desc").get();
-    return snap.docs.map((doc) => ({ ...(doc.data() as InboxItem), id: doc.id }));
+    return snap.docs.map((doc) =>
+      withCanonicalBrand({ ...(doc.data() as InboxItem), id: doc.id }),
+    );
   },
 
   async get(id) {
     const doc = await col().doc(id).get();
     if (!doc.exists) return null;
-    return { ...(doc.data() as InboxItem), id: doc.id };
+    return withCanonicalBrand({ ...(doc.data() as InboxItem), id: doc.id });
   },
 
   async create(item) {
