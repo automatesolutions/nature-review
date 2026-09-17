@@ -391,8 +391,8 @@ export function InboxApp({
                 onChange={(e) => setBrand(e.target.value as Brand | "all")}
               >
                 <option value="all">All ({countBrand("all")})</option>
-                <option value="Montana Tallow">
-                  Montana Tallow ({countBrand("Montana Tallow")})
+                <option value="Glacier Naturals">
+                  Glacier Naturals ({countBrand("Glacier Naturals")})
                 </option>
                 <option value="Lumerval">
                   Lumerval ({countBrand("Lumerval")})

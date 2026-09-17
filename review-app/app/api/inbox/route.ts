@@ -3,6 +3,7 @@ import { brandForPersona, displayNameForPersona, isPersonaKey } from "@/lib/pers
 import { getReviewerEmail } from "@/lib/reviewer";
 import { getStore } from "@/lib/store";
 import type { InboxItem, IngestPayload, PostType } from "@/lib/types";
+import { manilaCalendar } from "@/lib/week";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -56,13 +57,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const now = new Date().toISOString();
-  const runDate = body.runDate || now.slice(0, 10);
-  const weekdayName =
-    body.weekdayName ||
-    new Date(`${runDate}T12:00:00`).toLocaleDateString("en-US", {
-      weekday: "short",
-    });
+  const createdAt = new Date();
+  const now = createdAt.toISOString();
+  // Always Asia/Manila. n8n `$now` and toISOString() are UTC (Sep 7 after midnight PH).
+  const { runDate, weekdayName } = manilaCalendar(createdAt);
   const postType: PostType =
     body.postType === "product" ? "product" : "lifestyle";
 

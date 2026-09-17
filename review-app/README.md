@@ -2,7 +2,7 @@
 
 Internal web app for reviewing **persona lifestyle posts** (image + caption + Postbridge `mediaId`) before n8n schedules them. Replaces Slack Send-and-Wait.
 
-Personas: Linda Chambers, Becca Rose, Brooke Swift, Abby - The Farmer's Wife, Melissa Carter (Montana Tallow); Claire Donovan, Rebecca Lang (Lumerval); Linda Ashford, Eleanor Brody ([Pitch Skin](https://pitchskin.com/)). This is **not** the Lumerval paid-ad composition gallery.
+Personas: Linda Chambers, Becca Rose, Brooke Swift, Abby - The Farmer's Wife, Melissa Carter ([Glacier Naturals](https://www.glacier-naturals.com/), formerly Montana Tallow); Claire Donovan, Rebecca Lang (Lumerval); Linda Ashford, Eleanor Brody ([Pitch Skin](https://pitchskin.com/)). This is **not** the Lumerval paid-ad composition gallery.
 
 ## Run locally
 
@@ -98,8 +98,8 @@ After **Merge / combine** (caption + CloudFront `imageUrl` + Postbridge `mediaId
   "imageUrl": "{{ $json.imageUrl }}",
   "mediaId": "{{ $json.mediaId }}",
   "postType": "lifestyle",
-  "runDate": "{{ $now.format('yyyy-MM-dd') }}",
-  "weekdayName": "{{ $now.format('ccc') }}"
+  "runDate": "{{ $now.setZone('Asia/Manila').format('yyyy-MM-dd') }}",
+  "weekdayName": "{{ $now.setZone('Asia/Manila').format('ccc') }}"
 }
 ```
 
@@ -208,7 +208,7 @@ After Merge (image + caption + mediaId), **HTTP Request** instead of Slack Wait:
 }
 ```
 
-Creates a **Pending** row. Brand is inferred from `personaKey` (`claire_donovan` / `rebecca_lang` → Lumerval, `linda_ashford` / `eleanor_brody` → Pitch Skin, others → Montana Tallow).
+Creates a **Pending** row. Brand is inferred from `personaKey` (`claire_donovan` / `rebecca_lang` → Lumerval, `linda_ashford` / `eleanor_brody` → Pitch Skin, others → [Glacier Naturals](https://www.glacier-naturals.com/)).
 
 `personaKey` must be one of: `linda_chambers` | `becca_rose` | `brooke_swift` | `abby` | `melissa_carter` | `claire_donovan` | `rebecca_lang` | `linda_ashford` | `eleanor_brody`.
 

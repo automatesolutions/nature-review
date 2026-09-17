@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Natura Review Inbox",
   description:
-    "Review persona posts for Montana Tallow, Lumerval, and Pitch Skin",
+    "Review persona posts for Glacier Naturals, Lumerval, and Pitch Skin",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

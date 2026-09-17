@@ -14,37 +14,37 @@ export const PERSONAS: PersonaMeta[] = [
   {
     key: "linda_chambers",
     name: "Linda Chambers",
-    brand: "Montana Tallow",
+    brand: "Glacier Naturals",
     gender: "female",
     blurb: "cozy 50s+",
   },
   {
     key: "becca_rose",
     name: "Becca Rose",
-    brand: "Montana Tallow",
+    brand: "Glacier Naturals",
     gender: "female",
     blurb: "31, Nashville",
   },
   {
     key: "brooke_swift",
     name: "Brooke Swift",
-    brand: "Montana Tallow",
+    brand: "Glacier Naturals",
     gender: "female",
     blurb: "24, Annecy",
   },
   {
     key: "abby",
     name: "Abby - The Farmer's Wife",
-    brand: "Montana Tallow",
+    brand: "Glacier Naturals",
     gender: "female",
     blurb: "The Farmer's Wife",
   },
   {
     key: "melissa_carter",
     name: "Melissa Carter",
-    brand: "Montana Tallow",
+    brand: "Glacier Naturals",
     gender: "female",
-    blurb: "Montana Tallow",
+    blurb: "Glacier Naturals",
   },
   {
     key: "claire_donovan",
@@ -96,4 +96,11 @@ export function genderForPersona(key: PersonaKey): Gender {
 
 export function displayNameForPersona(key: PersonaKey, fallback?: string): string {
   return getPersona(key).name || fallback || key;
+}
+
+/** Re-derive brand so older “Montana Tallow” rows match Glacier Naturals. */
+export function withCanonicalBrand<T extends { personaKey: PersonaKey; brand: Brand }>(
+  item: T,
+): T {
+  return { ...item, brand: brandForPersona(item.personaKey) };
 }
